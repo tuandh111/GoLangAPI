@@ -59,7 +59,24 @@ func (s *Store) GetProducts() ([]*types.Product, error) {
 	}
 	return products, nil
 }
-func (s *Store) CreateProduct(types.CreateProductPayload) error {
+func (s *Store) GetProductByName(productName string) (*types.Product, error) {
+	rows := s.db.QueryRow("select  * from products where name = ? ", productName)
+	p := &types.Product{}
+	err := scanRowIntoProduct(rows, p)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, fmt.Errorf("user not found")
+		}
+		return nil, err
+	}
+	return p, nil
+
+}
+func (s *Store) CreateProduct(product types.CreateProductPayload) error {
+	_, err := s.db.Exec("insert into products ( name,description, image, price, quantity) values (?,?,?,?,?)", product.Name, product.Description, product.Image, product.Price, product.Quantity)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 func (s *Store) UpdateProduct(types.Product) error {

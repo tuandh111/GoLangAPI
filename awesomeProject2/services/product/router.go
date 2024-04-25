@@ -1,9 +1,11 @@
 package product
 
 import (
+	"awesomeProject2/services/auth"
 	"awesomeProject2/types"
 	"awesomeProject2/utils"
 	"fmt"
+	"github.com/go-playground/validator/v10"
 	"github.com/gorilla/mux"
 	"net/http"
 	"strconv"
@@ -25,7 +27,7 @@ func (h *Handler) RegisterRouter(router *mux.Router) {
 	router.HandleFunc("/GetProductsByID", h.handleGetProductsByID).Methods("POST")
 	router.HandleFunc("/GetProductsPage", h.handleGetProductsPage).Queries("page", "{page}").Methods(http.MethodGet)
 	router.HandleFunc("/GetProducts", h.handleGetProducts).Methods("GET")
-	router.HandleFunc("/CreateProduct", h.handleCreateProduct).Methods("POST")
+	router.HandleFunc("/CreateProduct", auth.WithJWTAuth(h.handleCreateProduct, h.userStore)).Methods("POST")
 	router.HandleFunc("/UpdateProduct", h.handleUpdateProduct).Methods("POST")
 	router.HandleFunc("/DeleteProduct", h.handleDeleteProduct).Methods("POST")
 
@@ -82,6 +84,26 @@ func (h *Handler) handleGetProducts(w http.ResponseWriter, r *http.Request) {
 	utils.WriteJSON(w, http.StatusOK, products)
 }
 func (h *Handler) handleCreateProduct(w http.ResponseWriter, r *http.Request) {
+	var product types.CreateProductPayload
+	if err := utils.ParseJSON(r, &product); err != nil {
+		utils.WriteError(w, http.StatusBadRequest, err)
+		return
+	}
+	if err := utils.Validate.Struct(product); err != nil {
+		errors := err.(validator.ValidationErrors)
+		utils.WriteError(w, http.StatusBadRequest, errors)
+		return
+	}
+	_, err := h.productStore.GetProductByName(product.Name)
+	if err == nil {
+		utils.WriteError(w, http.StatusBadRequest, fmt.Errorf("name exits"))
+		return
+	}
+	if err := h.productStore.CreateProduct(product); err != nil {
+		utils.WriteError(w, http.StatusBadRequest, fmt.Errorf("error create product"))
+		return
+	}
+	utils.WriteJSON(w, http.StatusOK, product)
 
 }
 func (h *Handler) handleUpdateProduct(w http.ResponseWriter, r *http.Request) {

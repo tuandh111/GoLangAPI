@@ -63,6 +63,7 @@ type ProductStore interface {
 	GetProductsByID(ids []int) ([]Product, error)
 	GetProductsPage(page int, limit int) ([]*Product, error)
 	GetProducts() ([]*Product, error)
+	GetProductByName(productName string) (*Product, error)
 	CreateProduct(CreateProductPayload) error
 	UpdateProduct(Product) error
 	DeleteProductByID(id int) error
