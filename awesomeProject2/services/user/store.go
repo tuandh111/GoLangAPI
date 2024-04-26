@@ -69,14 +69,13 @@ func (s *Store) CreateUser(user types.User) error {
 
 	return nil
 }
-func (s *Store) UpdateUser(User types.UserUpdate, userId int) (string, error) {
-	_, err := s.db.Exec("update users set firstname = ?, lastname = ? , email = ? , password = ? where  id = ?", User.FirstName, User.LastName, User.Email, User.Password, userId)
+func (s *Store) UpdateUser(user types.UserUpdate, userId int) (string, error) {
+	_, err := s.db.Exec("update users set firstname = ?, lastname = ? , email = ? , password = ? where  id = ?", user.FirstName, user.LastName, user.Email, user.Password, userId)
 	if err != nil {
 		return "update fail ", err
 	}
 	return "update successfully", nil
 }
-
 func (s *Store) GetUserByID(id int) (*types.User, error) {
 	row := s.db.QueryRow("SELECT * FROM users WHERE id = ?", id)
 	u := &types.User{}

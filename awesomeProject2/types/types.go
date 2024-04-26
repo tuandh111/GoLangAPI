@@ -1,6 +1,7 @@
 package types
 
 import (
+	"awesomeProject2/services/order/types_order"
 	"time"
 )
 
@@ -67,8 +68,8 @@ type UserStore interface {
 	DeleteUserByID(id int) error
 	GetUserByEmail(email string) (*User, error)
 	GetUserByID(id int) (*User, error)
-	CreateUser(User) error
-	UpdateUser(User UserUpdate, userId int) (string, error)
+	CreateUser(user User) error
+	UpdateUser(user UserUpdate, userId int) (string, error)
 }
 
 type ProductStore interface {
@@ -83,8 +84,9 @@ type ProductStore interface {
 }
 
 type OrderStore interface {
-	CreateOrder(Order) (int, error)
+	CreateOrder(payload types_order.OrderPayload) (int, error)
 	CreateOrderItem(OrderItem) error
+	FindAllOrderWithAdmin() ([]*Order, error)
 }
 type CreateProductPayload struct {
 	Name        string  `json:"name" validate:"required"`
