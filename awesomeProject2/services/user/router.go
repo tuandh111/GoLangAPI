@@ -23,12 +23,13 @@ func NewHandler(store types.UserStore) *Handler {
 func (h *Handler) RegisterRouter(router *mux.Router) {
 	router.HandleFunc("/login", h.handleLogin).Methods("POST")
 	router.HandleFunc("/register", h.handleRegister).Methods("POST")
-	//admin
+	//authentication
 	router.HandleFunc("/users/{userId}", auth.WithJWTAuth(h.handleGetUser, h.store)).Methods(http.MethodGet)
 	router.HandleFunc("/delete-by-user-id/{userId}", auth.WithJWTAuth(h.handleDeleteByUser, h.store)).Methods(http.MethodDelete)
-	//router.HandleFunc("/get-all-user", auth.WithJWTAuth(h.handleGetAllUser, h.store)).Methods(http.MethodGet)
+	router.HandleFunc("/get-all-users", auth.WithJWTAuth(h.handleGetAllUser, h.store)).Methods(http.MethodGet)
 	router.HandleFunc("/get-all-user", auth.WithJWTAuth(h.handleGetAllUserPage, h.store)).Queries("page", "{page}").Methods(http.MethodGet)
 	router.HandleFunc("/get-search-user/{lastname}", auth.WithJWTAuth(h.handleSearchName, h.store)).Methods(http.MethodGet)
+	router.HandleFunc("/update-user/{id}", auth.WithJWTAuth(h.handleUpdate, h.store)).Methods("POST")
 }
 func (h *Handler) handleLogin(w http.ResponseWriter, r *http.Request) {
 	var user types.LoginUserPayload
@@ -72,12 +73,40 @@ func (h *Handler) handleSearchName(w http.ResponseWriter, r *http.Request) {
 	}
 	user, err := h.store.FindBySearchName(str)
 	if err != nil {
-		utils.WriteError(w, http.StatusBadRequest, fmt.Errorf("not found lastname"))
+		utils.WriteError(w, http.StatusNotFound, fmt.Errorf("not found lastname"))
 		return
 	}
 	utils.WriteJSON(w, http.StatusOK, user)
 }
-
+func (h *Handler) handleUpdate(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	str, ok := vars["id"]
+	if !ok {
+		utils.WriteError(w, http.StatusBadRequest, fmt.Errorf("error id: "+str))
+		return
+	}
+	userId, err := strconv.Atoi(str)
+	if err != nil {
+		utils.WriteError(w, http.StatusBadRequest, err)
+		return
+	}
+	var user types.UserUpdate
+	if err := utils.ParseJSON(r, &user); err != nil {
+		utils.WriteError(w, http.StatusBadRequest, err)
+		return
+	}
+	if err := utils.Validate.Struct(user); err != nil {
+		erro := err.(validator.ValidationErrors)
+		utils.WriteError(w, http.StatusNotFound, erro)
+		return
+	}
+	message, erros := h.store.UpdateUser(user, userId)
+	if erros != nil {
+		utils.WriteError(w, http.StatusBadRequest, erros)
+		return
+	}
+	utils.WriteJSON(w, http.StatusOK, message)
+}
 func (h *Handler) handleRegister(w http.ResponseWriter, r *http.Request) {
 	var user types.RegisterUserPayload
 	if err := utils.ParseJSON(r, &user); err != nil {
@@ -172,7 +201,7 @@ func (h *Handler) handleGetAllUserPage(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-	users, err := h.store.GetAllUserIdPage(page, 7)
+	users, err := h.store.GetAllUserIdPage(page, 3)
 	if err != nil {
 		utils.WriteError(w, http.StatusBadRequest, err)
 		return

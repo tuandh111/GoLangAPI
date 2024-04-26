@@ -12,6 +12,12 @@ type User struct {
 	Password  string    `json:"-"`
 	CreatedAt time.Time `json:"createdAt"`
 }
+type UserUpdate struct {
+	FirstName string `json:"firstName" validate:"required"`
+	LastName  string `json:"lastName" validate:"required"`
+	Email     string `json:"email" validate:"required,email"`
+	Password  string `json:"password" validate:"required,min=3,max=130"`
+}
 
 type Product struct {
 	ID          int     `json:"id"`
@@ -24,7 +30,13 @@ type Product struct {
 	Quantity  int       `json:"quantity"`
 	CreatedAt time.Time `json:"createdAt"`
 }
-
+type UpdateProduct struct {
+	Name        string `json:"name" validate:"required"`
+	Description string `json:"description" validate:"required"`
+	Image       string `json:"image" validate:"required"`
+	Price       int    `json:"price"`
+	Quantity    int    `json:"quantity"`
+}
 type CartCheckoutItem struct {
 	ProductID int `json:"productID"`
 	Quantity  int `json:"quantity"`
@@ -56,6 +68,7 @@ type UserStore interface {
 	GetUserByEmail(email string) (*User, error)
 	GetUserByID(id int) (*User, error)
 	CreateUser(User) error
+	UpdateUser(User UserUpdate, userId int) (string, error)
 }
 
 type ProductStore interface {
@@ -65,7 +78,7 @@ type ProductStore interface {
 	GetProducts() ([]*Product, error)
 	GetProductByName(productName string) (*Product, error)
 	CreateProduct(CreateProductPayload) error
-	UpdateProduct(Product) error
+	UpdateProduct(product UpdateProduct, productId int) (string, error)
 	DeleteProductByID(id int) error
 }
 

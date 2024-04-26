@@ -28,7 +28,7 @@ func (h *Handler) RegisterRouter(router *mux.Router) {
 	router.HandleFunc("/GetProductsPage", h.handleGetProductsPage).Queries("page", "{page}").Methods(http.MethodGet)
 	router.HandleFunc("/GetProducts", h.handleGetProducts).Methods("GET")
 	router.HandleFunc("/CreateProduct", auth.WithJWTAuth(h.handleCreateProduct, h.userStore)).Methods("POST")
-	router.HandleFunc("/UpdateProduct", h.handleUpdateProduct).Methods("POST")
+	router.HandleFunc("/UpdateProduct/{id}", h.handleUpdateProduct).Methods("POST")
 	router.HandleFunc("/DeleteProduct", h.handleDeleteProduct).Methods("POST")
 
 }
@@ -107,6 +107,32 @@ func (h *Handler) handleCreateProduct(w http.ResponseWriter, r *http.Request) {
 
 }
 func (h *Handler) handleUpdateProduct(w http.ResponseWriter, r *http.Request) {
+	var productPayload types.UpdateProduct
+	vars := mux.Vars(r)
+	p, ok := vars["id"]
+	if !ok {
+		utils.WriteError(w, http.StatusBadRequest, fmt.Errorf("Error: Cannot convert string to int"))
+		return
+	}
+	productId, err := strconv.Atoi(p)
+	if err != nil {
+		utils.WriteError(w, http.StatusBadRequest, err)
+		return
+	}
+
+	if errs := utils.ParseJSON(r, &productPayload); errs != nil {
+		utils.WriteError(w, http.StatusBadRequest, errs)
+		return
+	}
+	if err := utils.Validate.Struct(productPayload); err != nil {
+		utils.WriteError(w, http.StatusBadRequest, err)
+	}
+	messsage, erros := h.productStore.UpdateProduct(productPayload, productId)
+	if erros != nil {
+		utils.WriteError(w, http.StatusBadRequest, erros)
+		return
+	}
+	utils.WriteJSON(w, http.StatusOK, messsage)
 
 }
 func (h *Handler) handleDeleteProduct(w http.ResponseWriter, r *http.Request) {

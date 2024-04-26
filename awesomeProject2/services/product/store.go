@@ -79,8 +79,12 @@ func (s *Store) CreateProduct(product types.CreateProductPayload) error {
 	}
 	return nil
 }
-func (s *Store) UpdateProduct(types.Product) error {
-	return nil
+func (s *Store) UpdateProduct(product types.UpdateProduct, productId int) (string, error) {
+	_, err := s.db.Exec("update products set name = ?, description = ?, image = ? , price = ? , quantity = ?  where id = ?", product.Name, product.Description, product.Image, product.Price, product.Quantity, productId)
+	if err != nil {
+		return "error update ", err
+	}
+	return "update successfully", nil
 }
 func (s *Store) DeleteProductByID(id int) error {
 	return nil
