@@ -2,7 +2,8 @@ package product
 
 import (
 	"awesomeProject2/services/auth"
-	"awesomeProject2/types"
+	"awesomeProject2/services/product/types_product"
+	"awesomeProject2/services/user/types_user"
 	"awesomeProject2/utils"
 	"fmt"
 	"github.com/go-playground/validator/v10"
@@ -12,11 +13,11 @@ import (
 )
 
 type Handler struct {
-	productStore types.ProductStore
-	userStore    types.UserStore
+	productStore types_product.ProductStore
+	userStore    types_user.UserStore
 }
 
-func NewHandler(productStore types.ProductStore, userStore types.UserStore) *Handler {
+func NewHandler(productStore types_product.ProductStore, userStore types_user.UserStore) *Handler {
 	return &Handler{
 		productStore: productStore,
 		userStore:    userStore,
@@ -84,7 +85,7 @@ func (h *Handler) handleGetProducts(w http.ResponseWriter, r *http.Request) {
 	utils.WriteJSON(w, http.StatusOK, products)
 }
 func (h *Handler) handleCreateProduct(w http.ResponseWriter, r *http.Request) {
-	var product types.CreateProductPayload
+	var product types_product.CreateProductPayload
 	if err := utils.ParseJSON(r, &product); err != nil {
 		utils.WriteError(w, http.StatusBadRequest, err)
 		return
@@ -107,7 +108,7 @@ func (h *Handler) handleCreateProduct(w http.ResponseWriter, r *http.Request) {
 
 }
 func (h *Handler) handleUpdateProduct(w http.ResponseWriter, r *http.Request) {
-	var productPayload types.UpdateProduct
+	var productPayload types_product.UpdateProduct
 	vars := mux.Vars(r)
 	p, ok := vars["id"]
 	if !ok {

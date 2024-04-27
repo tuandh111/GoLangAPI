@@ -3,7 +3,7 @@ package user
 import (
 	"awesomeProject2/configs"
 	"awesomeProject2/services/auth"
-	"awesomeProject2/types"
+	"awesomeProject2/services/user/types_user"
 	"awesomeProject2/utils"
 	"fmt"
 	"github.com/go-playground/validator/v10"
@@ -13,10 +13,10 @@ import (
 )
 
 type Handler struct {
-	store types.UserStore
+	store types_user.UserStore
 }
 
-func NewHandler(store types.UserStore) *Handler {
+func NewHandler(store types_user.UserStore) *Handler {
 	return &Handler{store: store}
 }
 
@@ -32,7 +32,7 @@ func (h *Handler) RegisterRouter(router *mux.Router) {
 	router.HandleFunc("/update-user/{id}", auth.WithJWTAuth(h.handleUpdate, h.store)).Methods("POST")
 }
 func (h *Handler) handleLogin(w http.ResponseWriter, r *http.Request) {
-	var user types.LoginUserPayload
+	var user types_user.LoginUserPayload
 	if err := utils.ParseJSON(r, &user); err != nil {
 		utils.WriteError(w, http.StatusBadRequest, err)
 		return
@@ -90,7 +90,7 @@ func (h *Handler) handleUpdate(w http.ResponseWriter, r *http.Request) {
 		utils.WriteError(w, http.StatusBadRequest, err)
 		return
 	}
-	var user types.UserUpdate
+	var user types_user.UserUpdate
 	if err := utils.ParseJSON(r, &user); err != nil {
 		utils.WriteError(w, http.StatusBadRequest, err)
 		return
@@ -108,7 +108,7 @@ func (h *Handler) handleUpdate(w http.ResponseWriter, r *http.Request) {
 	utils.WriteJSON(w, http.StatusOK, message)
 }
 func (h *Handler) handleRegister(w http.ResponseWriter, r *http.Request) {
-	var user types.RegisterUserPayload
+	var user types_user.RegisterUserPayload
 	if err := utils.ParseJSON(r, &user); err != nil {
 		fmt.Println(err)
 		utils.WriteError(w, http.StatusBadRequest, err)
@@ -131,7 +131,7 @@ func (h *Handler) handleRegister(w http.ResponseWriter, r *http.Request) {
 		utils.WriteError(w, http.StatusInternalServerError, err)
 		return
 	}
-	err = h.store.CreateUser(types.User{
+	err = h.store.CreateUser(types_user.User{
 		FirstName: user.FirstName,
 		LastName:  user.LastName,
 		Email:     user.Email,

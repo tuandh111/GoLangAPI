@@ -2,7 +2,7 @@ package auth
 
 import (
 	"awesomeProject2/configs"
-	"awesomeProject2/types"
+	"awesomeProject2/services/user/types_user"
 	"awesomeProject2/utils"
 	"context"
 	"fmt"
@@ -18,7 +18,7 @@ type contextKey string
 
 const UserKey contextKey = "userID"
 
-func WithJWTAuth(handlerFunc http.HandlerFunc, store types.UserStore) http.HandlerFunc {
+func WithJWTAuth(handlerFunc http.HandlerFunc, store types_user.UserStore) http.HandlerFunc {
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		tokenString := utils.GetTokenFromRequest(r)

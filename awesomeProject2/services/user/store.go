@@ -1,7 +1,7 @@
 package user
 
 import (
-	"awesomeProject2/types"
+	"awesomeProject2/services/user/types_user"
 	"database/sql"
 	"fmt"
 )
@@ -14,9 +14,9 @@ func NewStore(db *sql.DB) *Store {
 	return &Store{db: db}
 }
 
-func (s *Store) GetUserByEmail(email string) (*types.User, error) {
+func (s *Store) GetUserByEmail(email string) (*types_user.User, error) {
 	row := s.db.QueryRow("SELECT * FROM users WHERE email = ?", email)
-	u := &types.User{}
+	u := &types_user.User{}
 	err := scanRowIntoUser(row, u)
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -26,12 +26,12 @@ func (s *Store) GetUserByEmail(email string) (*types.User, error) {
 	}
 	return u, nil
 }
-func (s *Store) FindBySearchName(lastname string) ([]*types.User, error) {
+func (s *Store) FindBySearchName(lastname string) ([]*types_user.User, error) {
 	rows, err := s.db.Query("SELECT * FROM users WHERE lastname LIKE ?", "%"+lastname+"%")
 	if err != nil {
 		return nil, err
 	}
-	users := make([]*types.User, 0)
+	users := make([]*types_user.User, 0)
 	for rows.Next() {
 		p, errs := scanRowsIntoUser(rows)
 
@@ -42,12 +42,12 @@ func (s *Store) FindBySearchName(lastname string) ([]*types.User, error) {
 	}
 	return users, nil
 }
-func (s *Store) GetAllUserId() ([]*types.User, error) {
+func (s *Store) GetAllUserId() ([]*types_user.User, error) {
 	rows, err := s.db.Query("SELECT  * FROM users")
 	if err != nil {
 		return nil, err
 	}
-	users := make([]*types.User, 0)
+	users := make([]*types_user.User, 0)
 	for rows.Next() {
 		p, errs := scanRowsIntoUser(rows)
 
@@ -60,7 +60,7 @@ func (s *Store) GetAllUserId() ([]*types.User, error) {
 	return users, nil
 
 }
-func (s *Store) CreateUser(user types.User) error {
+func (s *Store) CreateUser(user types_user.User) error {
 	_, err := s.db.Exec("INSERT INTO users (firstName, lastName, email, password) VALUES (?, ?, ?, ?)",
 		user.FirstName, user.LastName, user.Email, user.Password)
 	if err != nil {
@@ -69,16 +69,16 @@ func (s *Store) CreateUser(user types.User) error {
 
 	return nil
 }
-func (s *Store) UpdateUser(user types.UserUpdate, userId int) (string, error) {
+func (s *Store) UpdateUser(user types_user.UserUpdate, userId int) (string, error) {
 	_, err := s.db.Exec("update users set firstname = ?, lastname = ? , email = ? , password = ? where  id = ?", user.FirstName, user.LastName, user.Email, user.Password, userId)
 	if err != nil {
 		return "update fail ", err
 	}
 	return "update successfully", nil
 }
-func (s *Store) GetUserByID(id int) (*types.User, error) {
+func (s *Store) GetUserByID(id int) (*types_user.User, error) {
 	row := s.db.QueryRow("SELECT * FROM users WHERE id = ?", id)
-	u := &types.User{}
+	u := &types_user.User{}
 	err := scanRowIntoUser(row, u)
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -105,14 +105,14 @@ func (s *Store) DeleteUserByID(id int) error {
 	fmt.Println(result)
 	return nil
 }
-func (s *Store) GetAllUserIdPage(page int, limit int) ([]*types.User, error) {
+func (s *Store) GetAllUserIdPage(page int, limit int) ([]*types_user.User, error) {
 	offset := (page - 1) * limit
 	query := fmt.Sprintf("SELECT * FROM users LIMIT %d OFFSET %d", limit, offset)
 	rows, err := s.db.Query(query)
 	if err != nil {
 		return nil, err
 	}
-	users := make([]*types.User, 0)
+	users := make([]*types_user.User, 0)
 	for rows.Next() {
 		p, errs := scanRowsIntoUser(rows)
 
@@ -125,15 +125,15 @@ func (s *Store) GetAllUserIdPage(page int, limit int) ([]*types.User, error) {
 	return users, nil
 }
 
-func scanRowIntoUser(row *sql.Row, u *types.User) error {
+func scanRowIntoUser(row *sql.Row, u *types_user.User) error {
 	err := row.Scan(&u.ID, &u.FirstName, &u.LastName, &u.Email, &u.Password, &u.CreatedAt)
 	if err != nil {
 		return err
 	}
 	return nil
 }
-func scanRowsIntoUser(rows *sql.Rows) (*types.User, error) {
-	user := new(types.User)
+func scanRowsIntoUser(rows *sql.Rows) (*types_user.User, error) {
+	user := new(types_user.User)
 	err := rows.Scan(
 		&user.ID,
 		&user.FirstName,

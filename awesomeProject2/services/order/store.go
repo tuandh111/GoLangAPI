@@ -2,7 +2,6 @@ package order
 
 import (
 	"awesomeProject2/services/order/types_order"
-	"awesomeProject2/types"
 	"database/sql"
 )
 
@@ -15,12 +14,12 @@ func NewOrder(db *sql.DB) *Store {
 		db: db,
 	}
 }
-func (s *Store) FindAllOrderWithAdmin() ([]*types.Order, error) {
+func (s *Store) FindAllOrderWithAdmin() ([]*types_order.Order, error) {
 	rows, err := s.db.Query("select  * from orders")
 	if err != nil {
 		return nil, err
 	}
-	orders := make([]*types.Order, 0)
+	orders := make([]*types_order.Order, 0)
 	for rows.Next() {
 		row, errs := scanRowsIntoOrder(rows)
 		if errs != nil {
@@ -43,19 +42,19 @@ func (s *Store) CreateOrder(order types_order.OrderPayload) (int, error) {
 
 	return int(id), nil
 }
-func (s *Store) CreateOrderItem(orderItem types.OrderItem) error {
+func (s *Store) CreateOrderItem(orderItem types_order.OrderItem) error {
 	_, err := s.db.Exec("INSERT INTO order_items (orderId, productId, quantity, price) VALUES (?, ?, ?, ?)", orderItem.OrderID, orderItem.ProductID, orderItem.Quantity, orderItem.Price)
 	if err != nil {
 		return err
 	}
 	return nil
 }
-func (s *Store) FindByOrderUserId(userId int) ([]*types.Order, error) {
+func (s *Store) FindByOrderUserId(userId int) ([]*types_order.Order, error) {
 	rows, err := s.db.Query("select  * from orders where userID = ?", userId)
 	if err != nil {
 		return nil, err
 	}
-	order := make([]*types.Order, 0)
+	order := make([]*types_order.Order, 0)
 	for rows.Next() {
 		o, err := scanRowsIntoOrder(rows)
 		if err != nil {
@@ -73,14 +72,14 @@ func (s *Store) UpdateOrderByUserId(payload types_order.OrderUpdateUserID, userI
 	}
 	return "update successfully", nil
 }
-func scanRowIntoOrder(row *sql.Row, order *types.Order) error {
+func scanRowIntoOrder(row *sql.Row, order *types_order.Order) error {
 	if err := row.Scan(&order.ID, &order.UserID, &order.Total, &order.Status, &order.Address, &order.CreatedAt); err != nil {
 		return err
 	}
 	return nil
 }
-func scanRowsIntoOrder(row *sql.Rows) (*types.Order, error) {
-	order := new(types.Order)
+func scanRowsIntoOrder(row *sql.Rows) (*types_order.Order, error) {
+	order := new(types_order.Order)
 	err := row.Scan(
 		&order.ID,
 		&order.UserID,

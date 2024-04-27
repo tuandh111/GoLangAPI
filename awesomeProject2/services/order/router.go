@@ -3,7 +3,9 @@ package order
 import (
 	"awesomeProject2/services/auth"
 	"awesomeProject2/services/order/types_order"
-	"awesomeProject2/types"
+	"awesomeProject2/services/product/types_product"
+	"awesomeProject2/services/status"
+	"awesomeProject2/services/user/types_user"
 	"awesomeProject2/utils"
 	"context"
 	"fmt"
@@ -14,12 +16,12 @@ import (
 )
 
 type Handler struct {
-	productStore types.ProductStore
-	userStore    types.UserStore
-	orderStore   types.OrderStore
+	productStore types_product.ProductStore
+	userStore    types_user.UserStore
+	orderStore   types_order.OrderStore
 }
 
-func NewHandler(productStore types.ProductStore, userStore types.UserStore, orderStore types.OrderStore) *Handler {
+func NewHandler(productStore types_product.ProductStore, userStore types_user.UserStore, orderStore types_order.OrderStore) *Handler {
 	return &Handler{
 		productStore: productStore,
 		userStore:    userStore,
@@ -95,7 +97,7 @@ func (s *Handler) UpdateOrder(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	message, errs := s.orderStore.UpdateOrderByUserId(orderPayload, userId, "PENDING")
+	message, errs := s.orderStore.UpdateOrderByUserId(orderPayload, userId, status.GetPending)
 	if errs != nil {
 		utils.WriteError(w, http.StatusBadRequest, fmt.Errorf(message))
 		return
