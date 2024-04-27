@@ -87,6 +87,8 @@ type OrderStore interface {
 	CreateOrder(payload types_order.OrderPayload) (int, error)
 	CreateOrderItem(OrderItem) error
 	FindAllOrderWithAdmin() ([]*Order, error)
+	FindByOrderUserId(userId int) ([]*Order, error)
+	UpdateOrderByUserId(orderUpdate types_order.OrderUpdateUserID, userId int, status string) (string, error)
 }
 type CreateProductPayload struct {
 	Name        string  `json:"name" validate:"required"`

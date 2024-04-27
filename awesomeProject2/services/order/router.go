@@ -29,6 +29,8 @@ func NewHandler(productStore types.ProductStore, userStore types.UserStore, orde
 func (h *Handler) RegisterOrder(router *mux.Router) {
 	router.HandleFunc("/create-order", auth.WithJWTAuth(h.CreateOrder, h.userStore)).Methods("POST")
 	router.HandleFunc("/find-all-order", auth.WithJWTAuth(h.FindAllOrderWithAdmin, h.userStore)).Methods("GET")
+	router.HandleFunc("/order/{userId}", auth.WithJWTAuth(h.FindByOrderByUser, h.userStore)).Methods("GET")
+	router.HandleFunc("/update-order", auth.WithJWTAuth(h.UpdateOrder, h.userStore)).Methods("POST")
 }
 func (h *Handler) FindAllOrderWithAdmin(w http.ResponseWriter, r *http.Request) {
 
@@ -41,7 +43,6 @@ func (h *Handler) FindAllOrderWithAdmin(w http.ResponseWriter, r *http.Request) 
 }
 func (h *Handler) CreateOrder(w http.ResponseWriter, r *http.Request) {
 	userID := auth.GetUserIDFromContext(r.Context())
-	fmt.Println("userId" + strconv.Itoa(userID))
 	var odpayload types_order.OrderPayload
 	if err := utils.ParseJSON(r, &odpayload); err != nil {
 		utils.WriteError(w, http.StatusBadRequest, fmt.Errorf("error json order"))
@@ -65,6 +66,41 @@ func (h *Handler) CreateOrder(w http.ResponseWriter, r *http.Request) {
 	}
 
 	utils.WriteJSON(w, http.StatusOK, "successfully create order with id: "+strconv.Itoa(id))
+}
+func (s *Handler) FindByOrderByUser(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	Id := vars["userId"]
+	userId, err := strconv.Atoi(Id)
+	if err != nil {
+		utils.WriteError(w, http.StatusBadRequest, err)
+		return
+	}
+	order, erors := s.orderStore.FindByOrderUserId(userId)
+	if erors != nil {
+		utils.WriteError(w, http.StatusBadRequest, erors)
+		return
+	}
+	utils.WriteJSON(w, http.StatusOK, order)
+}
+func (s *Handler) UpdateOrder(w http.ResponseWriter, r *http.Request) {
+	userId := auth.GetUserIDFromContext(r.Context())
+	var orderPayload types_order.OrderUpdateUserID
+	if err := utils.ParseJSON(r, &orderPayload); err != nil {
+		utils.WriteError(w, http.StatusBadRequest, err)
+		return
+	}
+	err := utils.Validate.Struct(orderPayload)
+	if err != nil {
+		utils.WriteError(w, http.StatusBadRequest, err)
+		return
+	}
+
+	message, errs := s.orderStore.UpdateOrderByUserId(orderPayload, userId, "PENDING")
+	if errs != nil {
+		utils.WriteError(w, http.StatusBadRequest, fmt.Errorf(message))
+		return
+	}
+	utils.WriteJSON(w, http.StatusOK, message)
 }
 func GetUserIDFromContext(ctx context.Context) int {
 	var userID, ok = ctx.Value(auth.UserKey).(int)
