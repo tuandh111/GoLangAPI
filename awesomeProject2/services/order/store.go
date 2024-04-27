@@ -72,6 +72,14 @@ func (s *Store) UpdateOrderByUserId(payload types_order.OrderUpdateUserID, userI
 	}
 	return "update successfully", nil
 }
+func (s *Store) FindByOrderUserIdAndStatus(userId int, status string) (*types_order.Order, error) {
+	row := s.db.QueryRow("select * from orders where userID = ? and status = ?", userId, status)
+	order := &types_order.Order{}
+	if err := scanRowIntoOrder(row, order); err != nil {
+		return nil, err
+	}
+	return order, nil
+}
 func scanRowIntoOrder(row *sql.Row, order *types_order.Order) error {
 	if err := row.Scan(&order.ID, &order.UserID, &order.Total, &order.Status, &order.Address, &order.CreatedAt); err != nil {
 		return err

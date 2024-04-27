@@ -1,6 +1,7 @@
 package api
 
 import (
+	"awesomeProject2/services/cart"
 	"awesomeProject2/services/order"
 	"awesomeProject2/services/product"
 	"awesomeProject2/services/user"
@@ -33,10 +34,14 @@ func (s *APIServer) Run() error {
 	productHandler := product.NewHandler(productStore, userStore)
 	productHandler.RegisterRouter(subrouter)
 
-	od := order.NewOrder(s.db)
-	orderHandler := order.NewHandler(productStore, userStore, od)
+	orderStore := order.NewOrder(s.db)
+	orderHandler := order.NewHandler(productStore, userStore, orderStore)
 	orderHandler.RegisterOrder(subrouter)
 
+	cartStore := cart.NewStoreCart(s.db)
+	cartHandler := cart.NewHandler(cartStore, productStore, orderStore, userStore)
+	cartHandler.RegisterCart(subrouter)
+	
 	router.PathPrefix("/").Handler(http.FileServer(http.Dir("static")))
 	log.Println("Listening on", s.addr)
 

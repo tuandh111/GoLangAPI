@@ -34,6 +34,7 @@ type OrderStore interface {
 	CreateOrderItem(OrderItem) error
 	FindAllOrderWithAdmin() ([]*Order, error)
 	FindByOrderUserId(userId int) ([]*Order, error)
+	FindByOrderUserIdAndStatus(userId int, status string) (*Order, error)
 	//PENDING,PROCESSING,SHIPPING,DELIVERED,CANCELLED
 	UpdateOrderByUserId(orderUpdate OrderUpdateUserID, userId int, status string) (string, error)
 }
