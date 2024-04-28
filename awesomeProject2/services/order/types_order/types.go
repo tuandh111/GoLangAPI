@@ -9,9 +9,9 @@ type OrderPayload struct {
 	Address string `json:"address" validate:"required"`
 }
 type OrderUpdateUserID struct {
-	Total   int    `json:"total" validate:"required"`
-	Status  string `json:"status" validate:"required"`
-	Address string `json:"address" validate:"required"`
+	Total   float64 `json:"total" validate:"required"`
+	Status  string  `json:"status" validate:"required"`
+	Address string  `json:"address" validate:"required"`
 }
 type OrderItem struct {
 	ID        int       `json:"id"`
