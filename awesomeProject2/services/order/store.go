@@ -3,6 +3,8 @@ package order
 import (
 	"awesomeProject2/services/order/types_order"
 	"database/sql"
+	"fmt"
+	"strconv"
 )
 
 type Store struct {
@@ -80,6 +82,18 @@ func (s *Store) FindByOrderUserIdAndStatus(userId int, status string) (*types_or
 	}
 	return order, nil
 }
+func (s *Store) DeleteOrder(orderId int) (string, error) {
+	_, errDeleteCart := s.db.Exec("delete from order_items where orderID = ?", orderId)
+	if errDeleteCart != nil {
+		fmt.Println(errDeleteCart)
+	}
+	_, err := s.db.Exec("delete from orders where id = ?", orderId)
+	if err != nil {
+		return "delete error: ", err
+	}
+	return "delete successfully with orderId: " + strconv.Itoa(orderId), nil
+}
+
 func scanRowIntoOrder(row *sql.Row, order *types_order.Order) error {
 	if err := row.Scan(&order.ID, &order.UserID, &order.Total, &order.Status, &order.Address, &order.CreatedAt); err != nil {
 		return err

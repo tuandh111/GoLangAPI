@@ -3,6 +3,7 @@ package cart
 import (
 	"awesomeProject2/services/cart/types_cart"
 	"database/sql"
+	"strconv"
 )
 
 type Store struct {
@@ -45,6 +46,13 @@ func (s *Store) UpdateOrSaveOrderIdAndProductId(cartItemUpdate types_cart.CartIt
 	}
 
 	return "update successfully", nil
+}
+func (s *Store) DeleteCart(orderId int) (string, error) {
+	_, err := s.db.Exec("delete from order_items where orderID = ?", orderId)
+	if err != nil {
+		return "", err
+	}
+	return "delete successfully with orderId: " + strconv.Itoa(orderId), nil
 }
 func scanRowsIntoOrderItem(rows *sql.Rows) (*types_cart.CartItem, error) {
 	orderItem := new(types_cart.CartItem)

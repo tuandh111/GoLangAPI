@@ -28,4 +28,5 @@ type CartStore interface {
 	CartItems(orderId int) ([]*CartItem, error)
 	CheckCartOrderIdAndProductId(orderId int, productId int) (*CartItem, int)
 	UpdateOrSaveOrderIdAndProductId(cartItemUpdate CartItemUpdate, cartID int) (string, error)
+	DeleteCart(orderId int) (string, error)
 }

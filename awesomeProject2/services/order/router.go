@@ -6,6 +6,7 @@ import (
 	"awesomeProject2/services/product/types_product"
 	"awesomeProject2/services/status"
 	"awesomeProject2/services/user/types_user"
+	"awesomeProject2/types"
 	"awesomeProject2/utils"
 	"context"
 	"fmt"
@@ -33,6 +34,7 @@ func (h *Handler) RegisterOrder(router *mux.Router) {
 	router.HandleFunc("/find-all-order", auth.WithJWTAuth(h.FindAllOrderWithAdmin, h.userStore)).Methods("GET")
 	router.HandleFunc("/order/{userId}", auth.WithJWTAuth(h.FindByOrderByUser, h.userStore)).Methods("GET")
 	router.HandleFunc("/update-order", auth.WithJWTAuth(h.UpdateOrder, h.userStore)).Methods("POST")
+	router.HandleFunc("/delete-order/{id}", auth.WithJWTAuth(h.deleteOrder, h.userStore)).Methods(http.MethodDelete)
 }
 func (h *Handler) FindAllOrderWithAdmin(w http.ResponseWriter, r *http.Request) {
 
@@ -103,6 +105,22 @@ func (s *Handler) UpdateOrder(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	utils.WriteJSON(w, http.StatusOK, message)
+}
+func (h *Handler) deleteOrder(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	id := vars["id"]
+	orderId, err := strconv.Atoi(id)
+	if err != nil {
+		utils.WriteError(w, http.StatusBadRequest, err)
+		return
+	}
+	message, errDeleteOrder := h.orderStore.DeleteOrder(orderId)
+	if errDeleteOrder != nil {
+		utils.WriteError(w, http.StatusBadRequest, errDeleteOrder)
+		return
+	}
+	utils.WriteJSON(w, http.StatusOK, types.JsonResponse{Message: message})
+
 }
 func GetUserIDFromContext(ctx context.Context) int {
 	var userID, ok = ctx.Value(auth.UserKey).(int)
